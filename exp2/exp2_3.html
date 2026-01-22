@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SVG Drawing Tool</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h2 {
+            margin: 15px 0;
+        }
+
+        .toolbar {
+            margin-bottom: 10px;
+        }
+
+        input[type="color"], button {
+            padding: 6px 10px;
+            margin-right: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        svg {
+            width: 90vw;
+            height: 70vh;
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Interactive SVG Drawing Tool</h2>
+
+<div class="toolbar">
+    <label>Choose Color: </label>
+    <input type="color" id="colorPicker" value="#000000">
+    <button onclick="undo()">Undo</button>
+</div>
+
+<svg id="svgCanvas"></svg>
+
+<script>
+    const svg = document.getElementById("svgCanvas");
+    const colorPicker = document.getElementById("colorPicker");
+
+    let drawing = false;
+    let currentPath = null;
+    let paths = [];
+
+    svg.addEventListener("mousedown", (e) => {
+        drawing = true;
+        const { x, y } = getMousePosition(e);
+
+        currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentPath.setAttribute("stroke", colorPicker.value);
+        currentPath.setAttribute("stroke-width", "2");
+        currentPath.setAttribute("fill", "none");
+        currentPath.setAttribute("d", `M ${x} ${y}`);
+
+        svg.appendChild(currentPath);
+        paths.push(currentPath);
+    });
+
+    svg.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+
+        const { x, y } = getMousePosition(e);
+        let d = currentPath.getAttribute("d");
+        currentPath.setAttribute("d", d + ` L ${x} ${y}`);
+    });
+
+    svg.addEventListener("mouseup", () => {
+        drawing = false;
+    });
+
+    svg.addEventListener("mouseleave", () => {
+        drawing = false;
+    });
+
+    function undo() {
+        if (paths.length > 0) {
+            const lastPath = paths.pop();
+            svg.removeChild(lastPath);
+        }
+    }
+
+    function getMousePosition(event) {
+        const rect = svg.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
+    }
+</script>
+
+</body>
+</html>
